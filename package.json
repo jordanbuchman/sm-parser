@@ -1,0 +1,19 @@
+{
+  "name": "sm-parser",
+  "version": "1.0.0",
+  "description": "sm-parser =========",
+  "main": "parser.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jordanbuchman/sm-parser.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jordanbuchman/sm-parser/issues"
+  },
+  "homepage": "https://github.com/jordanbuchman/sm-parser#readme"
+}
