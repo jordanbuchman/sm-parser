@@ -181,38 +181,77 @@ function getStepType(offset, parts) {
   return 8;
 }
 
+
 var fs = require('fs');
 var path = require('path');
 
-var filepath = process.argv[2];
-var dir = path.dirname(filepath);
-var filename = path.basename(filepath, '.sm');
-var outFile = path.join(dir, filename + '.json');
+exports.convert = function(inFile){
+    var filepath = inFile;
+    var dir = path.dirname(filepath);
+    var filename = path.basename(filepath, '.sm');
+    var outFile = path.join(dir, filename + '.json');
 
-var content = fs.readFileSync(filepath, 'utf-8');
-var inData = content
-  .replace(/(\/\*([\s\S]*?)\*\/)|(\/\/(.*)$)/gm, '')
-  .replace(/[\r\n\t\s]/g, '')
-  .split(';')
-  .map(function(field) {
-    return field.split(':');
-  });
+    var content = fs.readFileSync(filepath, 'utf-8');
+    var inData = content
+      .replace(/(\/\*([\s\S]*?)\*\/)|(\/\/(.*)$)/gm, '')
+      .replace(/[\r\n\t\s]/g, '')
+      .split(';')
+      .map(function(field) {
+        return field.split(':');
+      });
 
-var outData = {
-  notes: []
+    var outData = {
+      notes: []
+    };
+
+    inData.forEach(function(field) {
+      var fieldName = field[0].slice(1);
+      var map = keyMap[fieldName];
+      if (fieldName === 'NOTES') {
+        outData.notes.push(parseNotes.apply(undefined, field.slice(1)));
+      } else if (typeof map === 'string') {
+        outData[map] = field[1];
+      } else if (map) {
+        outData[map[0]] = map[1].apply(undefined, field.slice(1));
+      }
+    });
+    parseMeasures(outData);
+
+    fs.writeFileSync(outFile, JSON.stringify(outData, undefined, '\t'), 'utf-8');
+
 };
 
-inData.forEach(function(field) {
-  var fieldName = field[0].slice(1);
-  var map = keyMap[fieldName];
-  if (fieldName === 'NOTES') {
-    outData.notes.push(parseNotes.apply(undefined, field.slice(1)));
-  } else if (typeof map === 'string') {
-    outData[map] = field[1];
-  } else if (map) {
-    outData[map[0]] = map[1].apply(undefined, field.slice(1));
-  }
-});
-parseMeasures(outData);
+if (require.main === module) {
+    var filepath = process.argv[2];
+    var dir = path.dirname(filepath);
+    var filename = path.basename(filepath, '.sm');
+    var outFile = path.join(dir, filename + '.json');
 
-fs.writeFileSync(outFile, JSON.stringify(outData, undefined, '\t'), 'utf-8');
+    var content = fs.readFileSync(filepath, 'utf-8');
+    var inData = content
+      .replace(/(\/\*([\s\S]*?)\*\/)|(\/\/(.*)$)/gm, '')
+      .replace(/[\r\n\t\s]/g, '')
+      .split(';')
+      .map(function(field) {
+        return field.split(':');
+      });
+
+    var outData = {
+      notes: []
+    };
+
+    inData.forEach(function(field) {
+      var fieldName = field[0].slice(1);
+      var map = keyMap[fieldName];
+      if (fieldName === 'NOTES') {
+        outData.notes.push(parseNotes.apply(undefined, field.slice(1)));
+      } else if (typeof map === 'string') {
+        outData[map] = field[1];
+      } else if (map) {
+        outData[map[0]] = map[1].apply(undefined, field.slice(1));
+      }
+    });
+    parseMeasures(outData);
+
+    fs.writeFileSync(outFile, JSON.stringify(outData, undefined, '\t'), 'utf-8');
+}
